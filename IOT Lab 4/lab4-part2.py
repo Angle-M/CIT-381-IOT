@@ -48,7 +48,7 @@ def arm_system():
 
 def handle_alarm():
     global alarm_triggered
-    if armed and (motion.motion_detected or reed_switch.is_active):
+    if armed and (motion.when_motion or reed_switch.is_activated):
         print("ALARM ACTIVATED!")
         alarm_led.on()
         send_email("ALERT: Alarm Activated", "Motion detected or reed switch opened.")
@@ -57,8 +57,9 @@ def handle_alarm():
         alarm_triggered = False
 
 def clear_alarm():
-    if not (motion.motion_detected or reed_switch.is_active):
+    if (motion.when_no_motion or reed_switch.is_deactivated):
         print("Alarm Cleared")
+        clear_alarm = True
         alarm_led.off()
 
 motion.when_motion = handle_alarm
