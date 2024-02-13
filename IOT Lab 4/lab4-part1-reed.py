@@ -8,14 +8,14 @@ def push_button_callback():
     print("Push Button Pressed")
 
 def reed_switch_callback():
-    if reed_switch.is_active:
+    if reed_switch.when_activated:
         print("Reed Switch: Closed (Magnet Attached)")
     else:
         print("Reed Switch: Open (Magnet Removed)")
 
 # Assign callback functions to events
 push_button.when_pressed = push_button_callback
-reed_switch.when_actived = reed_switch_callback
+reed_switch.when_activated = reed_switch_callback
 reed_switch.when_deactivated = reed_switch_callback
 
 

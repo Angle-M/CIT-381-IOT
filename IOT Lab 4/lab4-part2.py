@@ -5,22 +5,11 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 # Define GPIO pin numbers
-motion_sensor_pin = 17
-reed_switch_pin = 18
-arm_button_pin = 19
-armed_led_pin = 21
-alarm_led_pin = 22
-
-# Initialize global variables
-armed = False
-alarm_triggered = False
-
-# Initialize components
-motion_sensor = MotionSensor(motion_sensor_pin)
-reed_switch = Button(reed_switch_pin)
-arm_button = Button(arm_button_pin)
-armed_led = LED(armed_led_pin)
-alarm_led = LED(alarm_led_pin)
+motion = MotionSensor(21)
+push_button = Button(17)
+reed_switch = Button(18, pull_up=False)
+armed_led = LED(23)  # Changed GPIO pin
+alarm_led = LED(22)
 
 # Email configuration
 email_address = "your_email@gmail.com"
@@ -56,34 +45,31 @@ def arm_system():
     else:
         print("System Disarmed")
         armed_led.off()
-        
 
 def handle_alarm():
     global alarm_triggered
-    if armed and (motion_sensor.motion_detected or reed_switch.is_pressed):
-        if not alarm_triggered:
-            print("ALARM ACTIVATED!")
-            alarm_led.on()
-            send_email("ALERT: Alarm Activated", "Motion detected or reed switch opened.")
-            alarm_triggered = True
+    if armed and (motion.motion_detected or reed_switch.is_active):
+        print("ALARM ACTIVATED!")
+        alarm_led.on()
+        send_email("ALERT: Alarm Activated", "Motion detected or reed switch opened.")
+        alarm_triggered = True
     else:
         alarm_triggered = False
 
 def clear_alarm():
-    if not (motion_sensor.motion_detected or reed_switch.is_pressed):
+    if not (motion.motion_detected or reed_switch.is_active):
         print("Alarm Cleared")
         alarm_led.off()
 
-# Assign callback functions to events
-motion_sensor.when_motion = motion_detected
-reed_switch.when_pressed = reed_switch_state_change
-arm_button.when_pressed = arm_system
+motion.when_motion = handle_alarm
+motion.when_no_motion = clear_alarm
+reed_switch.when_activated = handle_alarm
+reed_switch.when_deactivated = clear_alarm
+push_button.when_pressed = arm_system
 
 try:
     while True:
-        handle_alarm()
-        clear_alarm()
-        time.sleep(1)
+        time.sleep(5)
 except KeyboardInterrupt:
     print("Exiting the program.")
     armed_led.off()
